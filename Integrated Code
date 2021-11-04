@@ -1,8 +1,7 @@
 //anger inspired by ryoho https://openprocessing.org/sketch/1084140
 //sorrow inspired by the coding train pixel manipulation
 //joy inspired by artisan's https://openprocessing.org/sketch/696867
-// surprise inspired by Jason Labbe https://openprocessing.org/sketch/374882
-
+//surprise inspired by Jason Labbe https://openprocessing.org/sketch/374882
 
 PImage img;
 JSONObject json;
@@ -24,19 +23,18 @@ int spread, cols, rows, num;
 PVector[] vectors;
 
 //array list and variables for the surprise particle system
-int pixelStep = 6;
+int pixelStep = 3;
 int currentImageIndex = 0;
 ArrayList<Pixel> allPixels = new ArrayList<Pixel>();
 ArrayList<PVector> repulseTargets = new ArrayList<PVector>();
 PVector repulse;
 
 
-
 void setup() {
   strokeWeight(int(random(2,20)));
   background(0);
   img = loadImage("01.jpg");
-  json = loadJSONObject("01.json.txt");
+  json = loadJSONObject("01.json");
   size(600,1200);
   //img.resize(width,height);
   
@@ -62,7 +60,8 @@ void setup() {
     init_joy();
   }
   
-  if (surprise>=1){
+  // surprise particle system
+  if (surprise >=1){
     init_surprise();
   }
 }
@@ -286,27 +285,23 @@ class Particle_2{
 
 
 // SURPRISE  filler code to change -------------------------------------
+      
 void init_surprise(){
-  repulseTargets.add(new PVector(305, 375));
+  repulseTargets.add(new PVector(305, 700));
   repulseTargets.add(new PVector(301, 332));
   repulseTargets.add(new PVector(300, 333));
+  
   reset(currentImageIndex);
-}  
+  
+}
 
-void reset (int imageIndex) {
+void reset(int imageIndex){
   repulse = repulseTargets.get(currentImageIndex);
   
   PImage img = null;
-  switch(imageIndex) {
+  switch(imageIndex){
   case 0:
     img = loadImage("01.jpg");
-    break;
-  case 1:
-    img = loadImage("01.jpg");
-    break;
-  case 2:
-    img = loadImage("01.jpg");
-    break;
   }
   img.loadPixels();
   
@@ -331,8 +326,11 @@ void reset (int imageIndex) {
   }
 }
 
-void surprise() {
+void surprise(){
+  background(0);
+  
   int inBoundsCount = 0;
+  
   for (Pixel pixel : allPixels) {
     PVector newVec = pixel.pos.get();
     newVec.sub(repulse);
@@ -345,23 +343,19 @@ void surprise() {
   
     pixel.pos.add(pixel.vel);
     
+    
     if (pixel.pos.x > 0 && pixel.pos.x < width && pixel.pos.y > 0 && pixel.pos.y < height) {
       inBoundsCount += 1;
-    } 
+    }
+  }
+  // Go to next image if there are no more pixels inside the window
+  if (inBoundsCount == 0) {
+    currentImageIndex += 1;
+    if (currentImageIndex > repulseTargets.size()-1) { currentImageIndex = 0; }
+    reset(currentImageIndex);
   }
 }
-//particle class for surprise function 
-class Pixel {
-  PVector pos = new PVector(0, 0);
-  PVector vel = new PVector(0, 0);
-  color pixelColor;
-
-  Pixel(int x, int y, color inputColor) {
-    this.pos.set(x, y);
-    this.pixelColor = inputColor;
-  }
-}
-
+//void surprise() {
 //  image(img,0,0);
 //  if (millis()/1000%2==0){
 //    filter(INVERT);
@@ -369,8 +363,25 @@ class Pixel {
 //  else  {
 //    filter(POSTERIZE,3);
 //  }
-  //filter(THRESHOLD);
+//  //filter(THRESHOLD);
+//}
 
+//particle/pixel class for surprise 
+class Pixel {
+  PVector pos = new PVector(0, 0);
+  PVector vel = new PVector(0, 0);
+  color pixelColor;
+  
+  Pixel (int x, int y, color inputColor) {
+    this.pos.set(x, y);
+    this.pixelColor = inputColor;
+  }
+  
+  void draw() {
+    stroke(this.pixelColor);
+    point(this.pos.x, this.pos.y);
+  }
+}
 
 
 //TEXT -----------------------------------------------------
