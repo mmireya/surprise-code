@@ -1,15 +1,13 @@
 //anger inspired by ryoho https://openprocessing.org/sketch/1084140
 //sorrow inspired by the coding train pixel manipulation
 //joy inspired by artisan's https://openprocessing.org/sketch/696867
+//surprise inspired by the coding train painting with pixels https://www.youtube.com/watch?v=NbX3RnlAyGU&t=435s
 
 
 PImage img;
 JSONObject json;
 
 int id, joy, anger, surprise, sorrow;
-
-//String[] emotion_list = {};
-//int[] emotion_likelihood = {};
 
 //array list and variables for anger particle system
 ArrayList<Particle> particles;
@@ -30,11 +28,12 @@ int pixelSaturation= 100;
 int pixelBrightness = 100;
 
 //array list and variables for the surprise particle system
-int pixelStep = 3;
-int currentImageIndex = 0;
-ArrayList<Pixel> allPixels = new ArrayList<Pixel>();
-ArrayList<PVector> repulseTargets = new ArrayList<PVector>();
-PVector repulse;
+Particle_3[] particles_3;
+float b, c, vx, vy;
+
+
+
+
 
 
 void setup() {
@@ -58,15 +57,16 @@ void setup() {
   }
 
   //surprise particle system make condiition here for surprise >1
+  //commenting out since it causes a bug with multiple images
   if (joy >=1) {
-    init_joy();
+  init_joy();
   }
   
-  //surprise particle system 
   if (surprise >=1){
-    init_surprise();
+  init_surprise();
   }
 }
+  
 
 void draw() {
   //background(0);
@@ -330,101 +330,73 @@ class Particle_2 {
 
 // SURPRISE  filler code to change -------------------------------------
 void init_surprise(){
-  repulseTargets.add(new PVector(305, 700));
-  repulseTargets.add(new PVector(301, 332));
-  repulseTargets.add(new PVector(300, 333));
-  
-  reset(currentImageIndex);
-  
+  //particles_3 = newArrayList<Particle_3>();
+  particles_3 = new Particle_3[200];
+  for (int i = 0; i < particles_3.length; i++) {
+    particles_3[i] = new Particle_3();
+  }
 }
 
-void reset(int imageIndex){
-  repulse = repulseTargets.get(currentImageIndex);
+void surprise() {
+  if (millis() < 2000) {
+    image(img, 0, 0);
+  //} else {
+  //  fill(255, 20);  
+  //  rect(0, 0, width, height);
+  }else {
+  for (int i = 0; i < particles_3.length; i++) {
+    particles_3[i].display();
+    particles_3[i].move();
+  }
+ }
+}
+
+
+// particle class for surprise
+class Particle_3 {
+   float x;
+  float y;
   
-  //PImage img = null;
-  //switch(imageIndex){
-  //case 0:
-  //  img = loadImage("01.jpg");
-  //}
-  img.loadPixels();
+  float vx;
+  float vy;
   
-  allPixels.clear();
-  int i = 0;
-  for (int y = 0; y < img.height; y+=1) {
-    for (int x = 0; x < img.width; x+=1) {
-      color pixelColor = img.pixels[i];
-
-      i += 1;
-
-      if (alpha(pixelColor) == 0) { continue; }
-      if (i % pixelStep > 0) { continue; }
-
-      Pixel newPixel = new Pixel(x+(width-img.width)/2, y+(height-img.height)/2, pixelColor);
-      // Offset if it's the same coordinates as the repulse target (otherwise they won't get a velocity)
-      if (newPixel.pos.x == repulse.x) { newPixel.pos.x += 1; }
-      if (newPixel.pos.y == repulse.y) { newPixel.pos.y += 1; }
-      allPixels.add(newPixel);
-      newPixel.draw();
+  Particle_3() {
+    x = width/2;
+    y =(height/2)+100;
+    float a = random(TAU);
+    float speed = random(3);
+    vx = cos(a)*speed;
+    vy = sin(a)*speed;
+  }
+  
+  void display(){
+    noStroke();
+    color c = img.get(int(x), int(y));
+    fill(c);
+    //ellipse(x,y,30,30);
+    rect(x,y,30,30);
+  }
+  
+  void move(){
+    x = x + vx; // random(-5,5);
+    y = y + vy;
+    if (y < 0){
+      y = height;
+    }
+    
+    if (y > height){
+    y = 0;
+    }
+    
+    if (x < 0){
+      x = width;
+    }
+    
+    if (x > width){
+      x = 0;
     }
   }
 }
-
-void surprise(){
-  background(0);
-  
-  int inBoundsCount = 0;
-  
-  for (Pixel pixel : allPixels) {
-    PVector newVec = pixel.pos.get();
-    newVec.sub(repulse);
-    newVec.normalize();
-    newVec.setMag(random(0.001, 2.0));
-    newVec.x *= 1.5;
-    pixel.vel.add(newVec);
-    
-    pixel.draw();
-  
-    pixel.pos.add(pixel.vel);
-    
-    
-    if (pixel.pos.x > 0 && pixel.pos.x < width && pixel.pos.y > 0 && pixel.pos.y < height) {
-      inBoundsCount += 1;
-    }
-  }
-  // Go to next image if there are no more pixels inside the window
-  if (inBoundsCount == 0) {
-    currentImageIndex += 1;
-    if (currentImageIndex > repulseTargets.size()-1) { currentImageIndex = 0; }
-    reset(currentImageIndex);
-  }
-}
-
-//particle/pixel class for surprise 
-class Pixel {
-  PVector pos = new PVector(0, 0);
-  PVector vel = new PVector(0, 0);
-  color pixelColor;
-  
-  Pixel (int x, int y, color inputColor) {
-    this.pos.set(x, y);
-    this.pixelColor = inputColor;
-  }
-  
-  void draw() {
-    stroke(this.pixelColor);
-    point(this.pos.x, this.pos.y);
-  }
-}
-
-//void surprise() {
-//  image(img, 0, 0);
-//  if (millis()/1000%2==0) {
-//    filter(INVERT);
-//  } else {
-//    filter(POSTERIZE, 3);
-//  }
-//  //filter(THRESHOLD);
-//}
 
 
 
